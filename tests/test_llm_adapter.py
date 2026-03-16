@@ -16,7 +16,9 @@ class TestLLMAdapter:
         )
 
     def test_constructor_stores_config(self):
-        assert self.adapter.api_endpoint == "https://api.example.com/v1/chat/completions"
+        assert (
+            self.adapter.api_endpoint == "https://api.example.com/v1/chat/completions"
+        )
         assert self.adapter.api_key == "sk-test-key"
         assert self.adapter.model == "gpt-4o-mini"
         assert self.adapter.system_prompt == "You are a test bot."
@@ -38,9 +40,7 @@ class TestLLMAdapter:
     def test_chat_sends_system_prompt(self, mock_requests):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {
-            "choices": [{"message": {"content": "Ok"}}]
-        }
+        mock_resp.json.return_value = {"choices": [{"message": {"content": "Ok"}}]}
         mock_requests.post.return_value = mock_resp
 
         self.adapter.chat([{"role": "user", "content": "Hi"}])
@@ -54,9 +54,7 @@ class TestLLMAdapter:
     def test_chat_sends_model_in_payload(self, mock_requests):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {
-            "choices": [{"message": {"content": "Ok"}}]
-        }
+        mock_resp.json.return_value = {"choices": [{"message": {"content": "Ok"}}]}
         mock_requests.post.return_value = mock_resp
 
         self.adapter.chat([])
@@ -69,9 +67,7 @@ class TestLLMAdapter:
     def test_chat_sends_auth_header(self, mock_requests):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {
-            "choices": [{"message": {"content": "Ok"}}]
-        }
+        mock_resp.json.return_value = {"choices": [{"message": {"content": "Ok"}}]}
         mock_requests.post.return_value = mock_resp
 
         self.adapter.chat([])
@@ -93,6 +89,7 @@ class TestLLMAdapter:
     @patch("plugins.chat.src.llm_adapter.requests")
     def test_chat_raises_on_timeout(self, mock_requests):
         import requests as real_requests
+
         mock_requests.post.side_effect = real_requests.Timeout("timed out")
         mock_requests.Timeout = real_requests.Timeout
         mock_requests.RequestException = real_requests.RequestException
@@ -114,9 +111,7 @@ class TestLLMAdapter:
     def test_chat_includes_message_history(self, mock_requests):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {
-            "choices": [{"message": {"content": "Reply"}}]
-        }
+        mock_resp.json.return_value = {"choices": [{"message": {"content": "Reply"}}]}
         mock_requests.post.return_value = mock_resp
 
         history = [
@@ -133,9 +128,7 @@ class TestLLMAdapter:
         assert payload["messages"][1]["content"] == "First"
 
     def test_chat_raises_if_no_endpoint(self):
-        adapter = LLMAdapter(
-            api_endpoint="", api_key="key", model="model"
-        )
+        adapter = LLMAdapter(api_endpoint="", api_key="key", model="model")
         with pytest.raises(LLMError, match="not configured"):
             adapter.chat([{"role": "user", "content": "Hi"}])
 
@@ -146,33 +139,39 @@ class TestEndpointNormalization:
     def test_full_url_unchanged(self):
         adapter = LLMAdapter(
             api_endpoint="https://api.openai.com/v1/chat/completions",
-            api_key="k", model="m",
+            api_key="k",
+            model="m",
         )
         assert adapter.api_endpoint == "https://api.openai.com/v1/chat/completions"
 
     def test_base_url_gets_path_appended(self):
         adapter = LLMAdapter(
             api_endpoint="https://api.deepseek.com",
-            api_key="k", model="m",
+            api_key="k",
+            model="m",
         )
         assert adapter.api_endpoint == "https://api.deepseek.com/chat/completions"
 
     def test_base_url_with_trailing_slash(self):
         adapter = LLMAdapter(
             api_endpoint="https://api.deepseek.com/",
-            api_key="k", model="m",
+            api_key="k",
+            model="m",
         )
         assert adapter.api_endpoint == "https://api.deepseek.com/chat/completions"
 
     def test_base_url_with_v1(self):
         adapter = LLMAdapter(
             api_endpoint="https://api.openai.com/v1",
-            api_key="k", model="m",
+            api_key="k",
+            model="m",
         )
         assert adapter.api_endpoint == "https://api.openai.com/v1/chat/completions"
 
     def test_empty_endpoint_stays_empty(self):
         adapter = LLMAdapter(
-            api_endpoint="", api_key="k", model="m",
+            api_endpoint="",
+            api_key="k",
+            model="m",
         )
         assert adapter.api_endpoint == ""

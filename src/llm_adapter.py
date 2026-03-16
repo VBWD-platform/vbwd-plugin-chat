@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 class LLMError(Exception):
     """Raised when LLM API call fails."""
+
     pass
 
 
@@ -91,9 +92,7 @@ class LLMAdapter:
             raise LLMError(f"LLM API request failed: {e}")
 
         if response.status_code != 200:
-            raise LLMError(
-                f"LLM API returned {response.status_code}: {response.text}"
-            )
+            raise LLMError(f"LLM API returned {response.status_code}: {response.text}")
 
         try:
             data = response.json()

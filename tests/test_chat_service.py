@@ -53,7 +53,9 @@ class TestChatServiceSendMessage:
         call_kwargs = mock_token_service.debit_tokens.call_args
         assert call_kwargs.kwargs["amount"] > 0
 
-    def test_counts_both_request_and_response_tokens(self, chat_service, mock_token_service):
+    def test_counts_both_request_and_response_tokens(
+        self, chat_service, mock_token_service
+    ):
         chat_service.send_message(
             user_id=uuid4(),
             message=" ".join(["word"] * 15),  # 15 words -> 2 tokens
@@ -81,10 +83,7 @@ class TestChatServiceSendMessage:
             chat_service.send_message(uuid4(), long_msg, [])
 
     def test_trims_history(self, chat_service):
-        history = [
-            {"role": "user", "content": f"msg {i}"}
-            for i in range(30)
-        ]
+        history = [{"role": "user", "content": f"msg {i}"} for i in range(30)]
         chat_service.send_message(uuid4(), "Hello", history)
 
         adapter_call = chat_service.llm_adapter.chat.call_args[0][0]

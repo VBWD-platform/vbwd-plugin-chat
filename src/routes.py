@@ -40,9 +40,7 @@ def _build_chat_service(config):
         api_endpoint=config.get("llm_api_endpoint", ""),
         api_key=config.get("llm_api_key", ""),
         model=config.get("llm_model", "gpt-4o-mini"),
-        system_prompt=config.get(
-            "system_prompt", "You are a helpful assistant."
-        ),
+        system_prompt=config.get("system_prompt", "You are a helpful assistant."),
     )
 
     strategy = get_counting_strategy(config.get("counting_mode", "words"))
@@ -104,11 +102,16 @@ def get_chat_config():
     if err:
         return err
 
-    return jsonify({
-        "model": config.get("llm_model", "gpt-4o-mini"),
-        "max_message_length": config.get("max_message_length", 4000),
-        "counting_mode": config.get("counting_mode", "words"),
-    }), 200
+    return (
+        jsonify(
+            {
+                "model": config.get("llm_model", "gpt-4o-mini"),
+                "max_message_length": config.get("max_message_length", 4000),
+                "counting_mode": config.get("counting_mode", "words"),
+            }
+        ),
+        200,
+    )
 
 
 @chat_bp.route("/estimate", methods=["POST"])

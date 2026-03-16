@@ -46,6 +46,7 @@ class ChatPlugin(BasePlugin):
 
     def get_blueprint(self) -> Optional["Blueprint"]:
         from plugins.chat.src.routes import chat_bp
+
         return chat_bp
 
     def get_url_prefix(self) -> Optional[str]:

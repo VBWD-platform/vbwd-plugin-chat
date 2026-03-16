@@ -46,9 +46,7 @@ def app(mock_config_store, mock_container, mocker):
 
     from plugins.chat.src.routes import chat_bp
 
-    flask_app.register_blueprint(
-        chat_bp, url_prefix="/api/v1/plugins/chat"
-    )
+    flask_app.register_blueprint(chat_bp, url_prefix="/api/v1/plugins/chat")
 
     flask_app.config_store = mock_config_store
     flask_app.container = mock_container
@@ -75,9 +73,7 @@ class TestSendMessage:
     def test_success(self, mock_requests, client, auth_headers):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {
-            "choices": [{"message": {"content": "Hello!"}}]
-        }
+        mock_resp.json.return_value = {"choices": [{"message": {"content": "Hello!"}}]}
         mock_requests.post.return_value = mock_resp
 
         resp = client.post(
@@ -151,7 +147,9 @@ class TestSendMessage:
         assert resp.status_code == 400
         assert "insufficient" in resp.get_json()["error"].lower()
 
-    def test_plugin_disabled(self, client, auth_headers, app, mock_config_store_disabled):
+    def test_plugin_disabled(
+        self, client, auth_headers, app, mock_config_store_disabled
+    ):
         app.config_store = mock_config_store_disabled
 
         resp = client.post(
@@ -164,6 +162,7 @@ class TestSendMessage:
     @patch("plugins.chat.src.llm_adapter.requests")
     def test_llm_error_returns_502(self, mock_requests, client, auth_headers):
         import requests as real_requests
+
         mock_requests.post.side_effect = real_requests.ConnectionError("fail")
         mock_requests.Timeout = real_requests.Timeout
         mock_requests.RequestException = real_requests.RequestException
@@ -212,7 +211,9 @@ class TestGetConfig:
         resp = client.get("/api/v1/plugins/chat/config")
         assert resp.status_code == 401
 
-    def test_plugin_disabled(self, client, auth_headers, app, mock_config_store_disabled):
+    def test_plugin_disabled(
+        self, client, auth_headers, app, mock_config_store_disabled
+    ):
         app.config_store = mock_config_store_disabled
 
         resp = client.get(

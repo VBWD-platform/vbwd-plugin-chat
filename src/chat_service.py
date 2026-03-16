@@ -13,8 +13,13 @@ logger = logging.getLogger(__name__)
 class ChatService:
     """Orchestrates LLM communication and token billing."""
 
-    def __init__(self, token_service, llm_adapter: LLMAdapter,
-                 counting_strategy: TokenCountingStrategy, config: dict):
+    def __init__(
+        self,
+        token_service,
+        llm_adapter: LLMAdapter,
+        counting_strategy: TokenCountingStrategy,
+        config: dict,
+    ):
         self.token_service = token_service
         self.llm_adapter = llm_adapter
         self.counting_strategy = counting_strategy
@@ -41,9 +46,7 @@ class ChatService:
                 f"Message exceeds maximum length of {max_length} characters"
             )
 
-        request_cost = self.counting_strategy.calculate_tokens(
-            message, self.config
-        )
+        request_cost = self.counting_strategy.calculate_tokens(message, self.config)
 
         balance = self.token_service.get_balance(user_id)
         if balance < request_cost:

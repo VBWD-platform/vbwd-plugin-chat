@@ -1,0 +1,41 @@
+{
+  "tabs": [
+    {
+      "id": "api",
+      "label": "API Settings",
+      "fields": [
+        { "key": "llm_api_endpoint", "label": "API Endpoint", "component": "input", "inputType": "text" },
+        { "key": "llm_api_key", "label": "API Key", "component": "input", "inputType": "password" },
+        { "key": "llm_model", "label": "Model", "component": "input", "inputType": "text" },
+        { "key": "system_prompt", "label": "System Prompt", "component": "textarea" }
+      ]
+    },
+    {
+      "id": "token-counting",
+      "label": "Token Counting",
+      "fields": [
+        {
+          "key": "counting_mode",
+          "label": "Counting Mode",
+          "component": "select",
+          "options": [
+            { "value": "words", "label": "Word count" },
+            { "value": "data_volume", "label": "Data volume (MB)" },
+            { "value": "tokenizer", "label": "LLM tokenizer" }
+          ]
+        },
+        { "key": "words_per_token", "label": "Words per Token", "component": "input", "inputType": "number", "min": 1 },
+        { "key": "mb_per_token", "label": "MB per Token", "component": "input", "inputType": "number", "min": 0.0001 },
+        { "key": "tokens_per_token", "label": "LLM Tokens per Token", "component": "input", "inputType": "number", "min": 1 }
+      ]
+    },
+    {
+      "id": "limits",
+      "label": "Limits",
+      "fields": [
+        { "key": "max_message_length", "label": "Max Message Length", "component": "input", "inputType": "number", "min": 1, "max": 100000 },
+        { "key": "max_history_messages", "label": "Max History Messages", "component": "input", "inputType": "number", "min": 1, "max": 1000 }
+      ]
+    }
+  ]
+}

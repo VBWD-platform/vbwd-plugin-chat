@@ -1,0 +1,31 @@
+{
+  "plugin_name": "Chat",
+  "plugin_description": "LLM chat with token-based billing",
+  "errors": {
+    "insufficient_balance": "Insufficient token balance",
+    "message_too_long": "Message exceeds maximum length of {max_length} characters",
+    "plugin_not_enabled": "Chat plugin not enabled",
+    "llm_unavailable": "Chat service unavailable",
+    "missing_message": "Missing 'message' field",
+    "empty_message": "Message must be a non-empty string",
+    "invalid_history": "History must be an array",
+    "not_configured": "LLM API endpoint is not configured"
+  },
+  "config": {
+    "llm_api_endpoint": "LLM API Endpoint",
+    "llm_api_key": "API Key",
+    "llm_model": "Model",
+    "counting_mode": "Token Counting Mode",
+    "words_per_token": "Words per Token",
+    "mb_per_token": "MB per Token",
+    "tokens_per_token": "LLM Tokens per Platform Token",
+    "system_prompt": "System Prompt",
+    "max_message_length": "Max Message Length",
+    "max_history_messages": "Max History Messages"
+  },
+  "counting_modes": {
+    "words": "Word Count",
+    "data_volume": "Data Volume",
+    "tokenizer": "Tokenizer"
+  }
+}

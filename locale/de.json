@@ -1,0 +1,31 @@
+{
+  "plugin_name": "Chat",
+  "plugin_description": "LLM-Chat mit Token-basierter Abrechnung",
+  "errors": {
+    "insufficient_balance": "Nicht genügend Token-Guthaben",
+    "message_too_long": "Nachricht überschreitet die maximale Länge von {max_length} Zeichen",
+    "plugin_not_enabled": "Chat-Plugin nicht aktiviert",
+    "llm_unavailable": "Chat-Dienst nicht verfügbar",
+    "missing_message": "Feld 'message' fehlt",
+    "empty_message": "Nachricht darf nicht leer sein",
+    "invalid_history": "Verlauf muss ein Array sein",
+    "not_configured": "LLM-API-Endpunkt ist nicht konfiguriert"
+  },
+  "config": {
+    "llm_api_endpoint": "LLM-API-Endpunkt",
+    "llm_api_key": "API-Schlüssel",
+    "llm_model": "Modell",
+    "counting_mode": "Token-Zählmodus",
+    "words_per_token": "Wörter pro Token",
+    "mb_per_token": "MB pro Token",
+    "tokens_per_token": "LLM-Token pro Plattform-Token",
+    "system_prompt": "System-Prompt",
+    "max_message_length": "Maximale Nachrichtenlänge",
+    "max_history_messages": "Maximale Verlaufsnachrichten"
+  },
+  "counting_modes": {
+    "words": "Wortanzahl",
+    "data_volume": "Datenvolumen",
+    "tokenizer": "Tokenizer"
+  }
+}

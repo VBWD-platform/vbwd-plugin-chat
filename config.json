@@ -1,0 +1,52 @@
+{
+  "llm_api_endpoint": {
+    "type": "string",
+    "default": "",
+    "description": "OpenAI-compatible API endpoint (e.g. https://api.openai.com/v1/chat/completions)"
+  },
+  "llm_api_key": {
+    "type": "string",
+    "default": "",
+    "description": "API key for the LLM provider"
+  },
+  "llm_model": {
+    "type": "string",
+    "default": "gpt-4o-mini",
+    "description": "Model name sent to the API (e.g. gpt-4o-mini, claude-3-haiku)"
+  },
+  "system_prompt": {
+    "type": "string",
+    "default": "You are a helpful assistant.",
+    "description": "System prompt prepended to every conversation"
+  },
+  "counting_mode": {
+    "type": "string",
+    "default": "words",
+    "description": "How to count token usage: words, data_volume, or tokenizer"
+  },
+  "words_per_token": {
+    "type": "number",
+    "default": 10,
+    "description": "Words counted as 1 platform token (words mode)"
+  },
+  "mb_per_token": {
+    "type": "number",
+    "default": 0.001,
+    "description": "Megabytes counted as 1 platform token (data_volume mode)"
+  },
+  "tokens_per_token": {
+    "type": "number",
+    "default": 100,
+    "description": "LLM tokens counted as 1 platform token (tokenizer mode)"
+  },
+  "max_message_length": {
+    "type": "number",
+    "default": 4000,
+    "description": "Maximum character length per user message"
+  },
+  "max_history_messages": {
+    "type": "number",
+    "default": 20,
+    "description": "Maximum number of history messages sent to the LLM"
+  }
+}

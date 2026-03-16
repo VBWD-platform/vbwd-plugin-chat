@@ -47,3 +47,13 @@ Owns tables for conversation history (see migrations in `plugins/chat/migrations
 ```bash
 docker compose run --rm test python -m pytest plugins/chat/tests/ -v
 ```
+
+---
+
+## Related
+
+| | Repository |
+|-|------------|
+| 👤 Frontend (user) | [vbwd-fe-user-plugin-chat](https://github.com/VBWD-platform/vbwd-fe-user-plugin-chat) |
+
+**Core:** [vbwd-backend](https://github.com/VBWD-platform/vbwd-backend)

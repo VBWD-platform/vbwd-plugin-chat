@@ -1,5 +1,4 @@
 """Tests for token counting strategies."""
-import pytest
 from plugins.chat.src.token_counting import (
     WordCountStrategy,
     DataVolumeStrategy,

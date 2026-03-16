@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 
 from flask import Flask
 
-from src.plugins.config_store import PluginConfigEntry
 
 
 @pytest.fixture

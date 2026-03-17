@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 from flask import Flask
 
 
-
 @pytest.fixture
 def mock_container(mocker):
     """Mock DI container with token service."""

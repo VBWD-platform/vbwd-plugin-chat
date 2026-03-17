@@ -1,6 +1,6 @@
 """LLM adapter — HTTP calls to OpenAI-compatible chat completions API."""
 import logging
-from typing import List, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -64,7 +64,7 @@ class LLMAdapter:
         if not self.api_endpoint:
             raise LLMError("LLM API endpoint is not configured")
 
-        payload = {
+        payload: Dict[str, Any] = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": self.system_prompt},

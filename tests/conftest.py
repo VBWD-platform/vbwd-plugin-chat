@@ -2,7 +2,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from src.plugins.config_store import PluginConfigEntry
+from vbwd.plugins.config_store import PluginConfigEntry
 
 
 @pytest.fixture

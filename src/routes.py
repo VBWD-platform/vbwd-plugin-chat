@@ -2,7 +2,7 @@
 import logging
 from flask import Blueprint, jsonify, request, current_app, g
 
-from src.middleware.auth import require_auth
+from vbwd.middleware.auth import require_auth
 from plugins.chat.src.llm_adapter import LLMAdapter, LLMError
 from plugins.chat.src.chat_service import ChatService
 from plugins.chat.src.token_counting import get_counting_strategy

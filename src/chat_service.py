@@ -3,7 +3,7 @@ import logging
 from typing import List, Dict
 from uuid import UUID
 
-from src.models.enums import TokenTransactionType
+from vbwd.models.enums import TokenTransactionType
 from plugins.chat.src.token_counting import TokenCountingStrategy
 from plugins.chat.src.llm_adapter import LLMAdapter
 

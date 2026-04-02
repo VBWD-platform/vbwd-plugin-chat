@@ -1,1 +1,0 @@
-"""Chat plugin migration versions."""

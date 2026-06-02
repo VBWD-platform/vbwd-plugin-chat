@@ -58,6 +58,7 @@ jobs:
           if [ -d "$PLUGIN_SRC" ]; then
             mypy "$PLUGIN_SRC" \
               --ignore-missing-imports \
+              --disable-error-code=import-untyped \
               --no-error-summary \
               --python-version=3.11
           else

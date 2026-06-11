@@ -4,10 +4,27 @@ from typing import List, Dict
 from uuid import UUID
 
 from vbwd.models.enums import TokenTransactionType
-from plugins.chat.src.token_counting import TokenCountingStrategy
+from plugins.chat.src.token_counting import TokenCountingStrategy, get_counting_strategy
 from plugins.chat.src.llm_adapter import LLMAdapter
 
 logger = logging.getLogger(__name__)
+
+
+def build_chat_service(token_service, config: dict) -> "ChatService":
+    """Assemble a :class:`ChatService` from a token service and plugin config.
+
+    Single home (DRY) for the web-chat route and the bot-consumer free-text
+    handler — both must bill tokens identically, so both must build the service
+    the same way.
+    """
+    adapter = LLMAdapter(
+        api_endpoint=config.get("llm_api_endpoint", ""),
+        api_key=config.get("llm_api_key", ""),
+        model=config.get("llm_model", "gpt-4o-mini"),
+        system_prompt=config.get("system_prompt", "You are a helpful assistant."),
+    )
+    strategy = get_counting_strategy(config.get("counting_mode", "words"))
+    return ChatService(token_service, adapter, strategy, config)
 
 
 class ChatService:

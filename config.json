@@ -48,5 +48,15 @@
     "type": "number",
     "default": 20,
     "description": "Maximum number of history messages sent to the LLM"
+  },
+  "bot_enabled": {
+    "type": "boolean",
+    "default": false,
+    "description": "Expose the /hello-llm bot command over connected messaging adapters (Telegram, etc.)"
+  },
+  "bot_greeting": {
+    "type": "string",
+    "default": "Hello, I am {model}. How may I help you today?",
+    "description": "Greeting sent on /hello-llm; {model} is replaced with the configured model"
   }
 }

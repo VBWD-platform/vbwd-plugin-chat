@@ -3,8 +3,8 @@ import logging
 from flask import Blueprint, jsonify, request, current_app, g
 
 from vbwd.middleware.auth import require_auth
-from plugins.chat.src.llm_adapter import LLMAdapter, LLMError
-from plugins.chat.src.chat_service import ChatService
+from plugins.chat.src.llm_adapter import LLMError
+from plugins.chat.src.chat_service import build_chat_service
 from plugins.chat.src.token_counting import get_counting_strategy
 
 logger = logging.getLogger(__name__)
@@ -33,19 +33,8 @@ def _check_chat_enabled():
 
 def _build_chat_service(config):
     """Build ChatService from config and DI container."""
-    container = current_app.container
-    token_service = container.token_service()
-
-    adapter = LLMAdapter(
-        api_endpoint=config.get("llm_api_endpoint", ""),
-        api_key=config.get("llm_api_key", ""),
-        model=config.get("llm_model", "gpt-4o-mini"),
-        system_prompt=config.get("system_prompt", "You are a helpful assistant."),
-    )
-
-    strategy = get_counting_strategy(config.get("counting_mode", "words"))
-
-    return ChatService(token_service, adapter, strategy, config)
+    token_service = current_app.container.token_service()
+    return build_chat_service(token_service, config)
 
 
 @chat_bp.route("/send", methods=["POST"])

@@ -36,6 +36,14 @@
         { "key": "max_message_length", "label": "Max Message Length", "component": "input", "inputType": "number", "min": 1, "max": 100000 },
         { "key": "max_history_messages", "label": "Max History Messages", "component": "input", "inputType": "number", "min": 1, "max": 1000 }
       ]
+    },
+    {
+      "id": "bot",
+      "label": "Bot",
+      "fields": [
+        { "key": "bot_enabled", "label": "Enable Bot Command", "component": "checkbox" },
+        { "key": "bot_greeting", "label": "Bot Greeting", "component": "textarea" }
+      ]
     }
   ]
 }

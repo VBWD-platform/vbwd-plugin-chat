@@ -99,7 +99,7 @@ jobs:
             if [ -f "$EXCLUDE_FILE" ] && grep -qxF "$name" "$EXCLUDE_FILE"; then
               echo "Skipping CI-excluded plugin: $name"; continue
             fi
-            docker compose exec -T api flask plugins enable "$name" \
+            docker compose exec -T api flask --app "vbwd:create_app()" plugins enable "$name" \
               && echo "Plugin $name enabled." \
               || echo "Plugin $name already enabled or not registerable — continuing."
           done

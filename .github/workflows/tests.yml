@@ -33,6 +33,13 @@ jobs:
           repository: VBWD-platform/vbwd-plugin-bot-base
           path: vbwd-backend/plugins/bot_base
 
+      # ── 2c. Clone bot_telegram dependency (integration round-trip) ────
+      - name: Clone bot_telegram dependency
+        uses: actions/checkout@v4
+        with:
+          repository: VBWD-platform/vbwd-plugin-bot-telegram
+          path: vbwd-backend/plugins/bot_telegram
+
       # ── 3. Style checks (black · flake8 · mypy) ───────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5

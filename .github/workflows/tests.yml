@@ -26,6 +26,13 @@ jobs:
         with:
           path: vbwd-backend/plugins/chat
 
+      # ── 2b. Clone bot_base dependency (chat's bot consumer imports it) ────
+      - name: Clone bot_base dependency
+        uses: actions/checkout@v4
+        with:
+          repository: VBWD-platform/vbwd-plugin-bot-base
+          path: vbwd-backend/plugins/bot_base
+
       # ── 3. Style checks (black · flake8 · mypy) ───────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5

@@ -96,13 +96,14 @@ class TestHelloLlmCommand:
         assert names == ["hello-llm"]
         assert commands[0].namespace == "chat"
 
-    def test_greeting_interpolates_model(self, enabled_chat_plugin):
+    def test_greeting_interpolates_connection_label(self, enabled_chat_plugin):
+        """``{model}`` resolves to the LLM connection slug (blank ⇒ 'default')."""
         inbound = _make_inbound(command="hello-llm")
 
         reply = enabled_chat_plugin.handle_action(inbound)
 
         assert isinstance(reply, BotReply)
-        assert "gpt-4o-mini" in reply.text
+        assert "default" in reply.text
         assert "{model}" not in reply.text
 
     def test_greeting_uses_custom_template(self, chat_config):
@@ -111,14 +112,14 @@ class TestHelloLlmCommand:
             {
                 **chat_config,
                 "bot_enabled": True,
-                "llm_model": "claude-3-haiku",
+                "llm_connection_slug": "anthropic-prod",
                 "bot_greeting": "Ready with {model}.",
             }
         )
 
         reply = plugin.handle_action(_make_inbound(command="hello-llm"))
 
-        assert reply.text == "Ready with claude-3-haiku."
+        assert reply.text == "Ready with anthropic-prod."
 
     def test_hello_llm_does_not_call_chat_service(
         self, enabled_chat_plugin, monkeypatch

@@ -14,9 +14,10 @@ if TYPE_CHECKING:
 
 
 DEFAULT_CONFIG = {
-    "llm_api_endpoint": "",
-    "llm_api_key": "",
-    "llm_model": "gpt-4o-mini",
+    # The model/endpoint/key now live in a CORE "LLM Connection" (S97). chat
+    # keeps only the optional slug of the connection to use; empty ⇒ the active
+    # default connection.
+    "llm_connection_slug": "",
     "counting_mode": "words",
     "words_per_token": 10,
     "mb_per_token": 0.001,
@@ -122,7 +123,10 @@ class ChatPlugin(BasePlugin):
 
     def _greeting(self) -> str:
         template = self.get_config("bot_greeting", DEFAULT_CONFIG["bot_greeting"])
-        model = self.get_config("llm_model", DEFAULT_CONFIG["llm_model"])
+        # The concrete model lives in the central LLM connection now; surface the
+        # connection slug (blank ⇒ the active default) where the greeting names
+        # the "model".
+        model = self.get_config("llm_connection_slug", "") or "default"
         return template.format(model=model)
 
     def _handle_free_text(self, context: "BotInbound") -> "BotReply":
@@ -157,4 +161,6 @@ class ChatPlugin(BasePlugin):
 
         config = current_app.config_store.get_config("chat")
         token_service = current_app.container.token_service()
-        return build_chat_service(token_service, config)
+        slug = config.get("llm_connection_slug") or None
+        llm_client = current_app.container.llm_client(slug=slug)
+        return build_chat_service(token_service, config, llm_client=llm_client)

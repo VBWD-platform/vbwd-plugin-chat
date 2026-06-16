@@ -1,18 +1,8 @@
 {
-  "llm_api_endpoint": {
+  "llm_connection_slug": {
     "type": "string",
     "default": "",
-    "description": "OpenAI-compatible API endpoint (e.g. https://api.openai.com/v1/chat/completions)"
-  },
-  "llm_api_key": {
-    "type": "string",
-    "default": "",
-    "description": "API key for the LLM provider"
-  },
-  "llm_model": {
-    "type": "string",
-    "default": "gpt-4o-mini",
-    "description": "Model name sent to the API (e.g. gpt-4o-mini, claude-3-haiku)"
+    "description": "Slug of the central LLM Connection to use (Settings > LLM Connections). Blank = the active default connection."
   },
   "system_prompt": {
     "type": "string",

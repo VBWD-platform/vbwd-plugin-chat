@@ -9,9 +9,7 @@ from vbwd.plugins.config_store import PluginConfigEntry
 def chat_config():
     """Chat plugin configuration dict."""
     return {
-        "llm_api_endpoint": "https://api.openai.com/v1/chat/completions",
-        "llm_api_key": "sk-test-key-123",
-        "llm_model": "gpt-4o-mini",
+        "llm_connection_slug": "",
         "counting_mode": "words",
         "words_per_token": 10,
         "mb_per_token": 0.001,

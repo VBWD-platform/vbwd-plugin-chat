@@ -3,18 +3,17 @@ import pytest
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from plugins.chat.src.chat_service import ChatService
+from plugins.chat.src.chat_service import ChatService, LLMError
 from plugins.chat.src.token_counting import WordCountStrategy
-from plugins.chat.src.llm_adapter import LLMError
 
 
 @pytest.fixture
 def chat_service(mock_token_service, chat_config):
-    """ChatService with mocked dependencies."""
-    adapter = MagicMock()
-    adapter.chat.return_value = "This is the assistant response text."
+    """ChatService with a mocked CORE LLM client."""
+    llm_client = MagicMock()
+    llm_client.chat.return_value = "This is the assistant response text."
     strategy = WordCountStrategy()
-    return ChatService(mock_token_service, adapter, strategy, chat_config)
+    return ChatService(mock_token_service, llm_client, strategy, chat_config)
 
 
 class TestChatServiceSendMessage:
@@ -68,14 +67,14 @@ class TestChatServiceSendMessage:
 
     def test_insufficient_balance_raises(self, mock_token_service, chat_config):
         mock_token_service.get_balance.return_value = 0
-        adapter = MagicMock()
+        llm_client = MagicMock()
         strategy = WordCountStrategy()
-        service = ChatService(mock_token_service, adapter, strategy, chat_config)
+        service = ChatService(mock_token_service, llm_client, strategy, chat_config)
 
         with pytest.raises(ValueError, match="Insufficient"):
             service.send_message(uuid4(), "Hello", [])
 
-        adapter.chat.assert_not_called()
+        llm_client.chat.assert_not_called()
 
     def test_validates_max_length(self, chat_service):
         long_msg = "a" * 5000
@@ -86,15 +85,15 @@ class TestChatServiceSendMessage:
         history = [{"role": "user", "content": f"msg {i}"} for i in range(30)]
         chat_service.send_message(uuid4(), "Hello", history)
 
-        adapter_call = chat_service.llm_adapter.chat.call_args[0][0]
+        adapter_call = chat_service.llm_client.chat.call_args[0][0]
         # max_history_messages=20, plus the new message = 21
         assert len(adapter_call) == 21
 
     def test_llm_error_no_deduction(self, mock_token_service, chat_config):
-        adapter = MagicMock()
-        adapter.chat.side_effect = LLMError("API error")
+        llm_client = MagicMock()
+        llm_client.chat.side_effect = LLMError("API error")
         strategy = WordCountStrategy()
-        service = ChatService(mock_token_service, adapter, strategy, chat_config)
+        service = ChatService(mock_token_service, llm_client, strategy, chat_config)
 
         with pytest.raises(LLMError):
             service.send_message(uuid4(), "Hello", [])
@@ -108,7 +107,7 @@ class TestChatServiceSendMessage:
         ]
         chat_service.send_message(uuid4(), "Second", history)
 
-        messages = chat_service.llm_adapter.chat.call_args[0][0]
+        messages = chat_service.llm_client.chat.call_args[0][0]
         assert messages[0]["content"] == "First"
         assert messages[1]["content"] == "Reply"
         assert messages[2]["content"] == "Second"

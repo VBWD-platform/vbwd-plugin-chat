@@ -3,8 +3,8 @@ import logging
 from flask import Blueprint, jsonify, request, current_app, g
 
 from vbwd.middleware.auth import require_auth
-from plugins.chat.src.llm_adapter import LLMError
-from plugins.chat.src.chat_service import build_chat_service
+from vbwd.services.llm_connection_service import NoActiveLlmConnectionError
+from plugins.chat.src.chat_service import LLMError, build_chat_service
 from plugins.chat.src.token_counting import get_counting_strategy
 
 logger = logging.getLogger(__name__)
@@ -32,9 +32,16 @@ def _check_chat_enabled():
 
 
 def _build_chat_service(config):
-    """Build ChatService from config and DI container."""
+    """Build ChatService from config + the DI container.
+
+    The LLM client is resolved from the CORE active LLM connection (by
+    ``llm_connection_slug``, else the default) — chat no longer holds a key
+    or endpoint (S97.5).
+    """
     token_service = current_app.container.token_service()
-    return build_chat_service(token_service, config)
+    slug = config.get("llm_connection_slug") or None
+    llm_client = current_app.container.llm_client(slug=slug)
+    return build_chat_service(token_service, config, llm_client=llm_client)
 
 
 @chat_bp.route("/send", methods=["POST"])
@@ -61,10 +68,11 @@ def send_message():
     if not isinstance(history, list):
         return jsonify({"error": "History must be an array"}), 400
 
-    if not config.get("llm_api_endpoint"):
-        return jsonify({"error": "LLM API endpoint is not configured"}), 503
-
-    service = _build_chat_service(config)
+    try:
+        service = _build_chat_service(config)
+    except NoActiveLlmConnectionError as e:
+        logger.error("No active LLM connection for chat: %s", e)
+        return jsonify({"error": "LLM connection is not configured"}), 503
 
     try:
         result = service.send_message(
@@ -91,10 +99,12 @@ def get_chat_config():
     if err:
         return err
 
+    # The concrete model lives in the central LLM connection now; surface the
+    # connection slug (blank ⇒ the active default) as the model identifier.
     return (
         jsonify(
             {
-                "model": config.get("llm_model", "gpt-4o-mini"),
+                "model": config.get("llm_connection_slug", "") or "default",
                 "max_message_length": config.get("max_message_length", 4000),
                 "counting_mode": config.get("counting_mode", "words"),
             }

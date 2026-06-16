@@ -1,14 +1,14 @@
 """Tests for chat plugin API routes."""
 import pytest
 from uuid import UUID
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from flask import Flask
 
 
 @pytest.fixture
 def mock_container(mocker):
-    """Mock DI container with token service."""
+    """Mock DI container with a token service + the CORE LLM client."""
     container = mocker.MagicMock()
     token_service = MagicMock()
     balance_obj = MagicMock()
@@ -16,6 +16,10 @@ def mock_container(mocker):
     token_service.get_balance.return_value = 1000
     token_service.debit_tokens.return_value = balance_obj
     container.token_service.return_value = token_service
+
+    llm_client = MagicMock()
+    llm_client.chat.return_value = "Hello!"
+    container.llm_client.return_value = llm_client
     return container
 
 
@@ -67,12 +71,8 @@ def auth_headers():
 class TestSendMessage:
     """Tests for POST /api/v1/plugins/chat/send."""
 
-    @patch("plugins.chat.src.llm_adapter.requests")
-    def test_success(self, mock_requests, client, auth_headers):
-        mock_resp = MagicMock()
-        mock_resp.status_code = 200
-        mock_resp.json.return_value = {"choices": [{"message": {"content": "Hello!"}}]}
-        mock_requests.post.return_value = mock_resp
+    def test_success(self, client, auth_headers, mock_container):
+        mock_container.llm_client.return_value.chat.return_value = "Hello!"
 
         resp = client.post(
             "/api/v1/plugins/chat/send",
@@ -85,14 +85,8 @@ class TestSendMessage:
         assert "tokens_used" in data
         assert "balance" in data
 
-    @patch("plugins.chat.src.llm_adapter.requests")
-    def test_returns_tokens_used(self, mock_requests, client, auth_headers):
-        mock_resp = MagicMock()
-        mock_resp.status_code = 200
-        mock_resp.json.return_value = {
-            "choices": [{"message": {"content": "Response"}}]
-        }
-        mock_requests.post.return_value = mock_resp
+    def test_returns_tokens_used(self, client, auth_headers, mock_container):
+        mock_container.llm_client.return_value.chat.return_value = "Response"
 
         resp = client.post(
             "/api/v1/plugins/chat/send",
@@ -157,13 +151,12 @@ class TestSendMessage:
         )
         assert resp.status_code == 404
 
-    @patch("plugins.chat.src.llm_adapter.requests")
-    def test_llm_error_returns_502(self, mock_requests, client, auth_headers):
-        import requests as real_requests
+    def test_llm_error_returns_502(self, client, auth_headers, mock_container):
+        from vbwd.llm.errors import LlmError
 
-        mock_requests.post.side_effect = real_requests.ConnectionError("fail")
-        mock_requests.Timeout = real_requests.Timeout
-        mock_requests.RequestException = real_requests.RequestException
+        mock_container.llm_client.return_value.chat.side_effect = LlmError(
+            "upstream failed"
+        )
 
         resp = client.post(
             "/api/v1/plugins/chat/send",

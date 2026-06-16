@@ -14,9 +14,7 @@ import pytest
 from vbwd.models.enums import TokenTransactionType, UserRole
 
 CHAT_CONFIG = {
-    "llm_api_endpoint": "https://api.fake-llm.local/v1/chat/completions",
-    "llm_api_key": "sk-fake",
-    "llm_model": "gpt-4o-mini",
+    "llm_connection_slug": "",
     "counting_mode": "words",
     "words_per_token": 10,
     "mb_per_token": 0.001,
@@ -100,6 +98,21 @@ def _enable_chat_bot(app, monkeypatch):
     monkeypatch.setattr(app.config_store, "get_config", _patched_get_config)
 
 
+def _stub_core_llm_client(app, monkeypatch, *, on_chat):
+    """Stub ``container.llm_client`` so no network is touched (S97.5).
+
+    The chat bot consumer now resolves the CORE LLM client; we replace it with a
+    fake whose ``.chat`` records the messages and returns a canned answer, so the
+    billed round-trip runs end-to-end without a live LLM connection.
+    """
+    from unittest.mock import MagicMock
+
+    fake_client = MagicMock()
+    fake_client.chat.side_effect = lambda messages, **kwargs: on_chat(messages)
+    monkeypatch.setattr(app.container, "llm_client", lambda slug=None: fake_client)
+    return fake_client
+
+
 def _grant_tokens(app, user_id, amount):
     from vbwd.extensions import db
 
@@ -153,10 +166,8 @@ def test_hello_llm_then_free_text_round_trip_debits_tokens(
 ):
     fake_telegram = _inject_fake_telegram_client
 
-    # Fake the LLM transport so no network is touched but the billed path runs.
-    from plugins.chat.src.llm_adapter import LLMAdapter
-
-    monkeypatch.setattr(LLMAdapter, "chat", lambda self, messages: FAKE_LLM_ANSWER)
+    # Fake the core LLM client so no network is touched but the billed path runs.
+    _stub_core_llm_client(app, monkeypatch, on_chat=lambda messages: FAKE_LLM_ANSWER)
 
     _enable_chat_bot(app, monkeypatch)
     bot_name, secret = _create_bot(app, client)
@@ -171,7 +182,7 @@ def test_hello_llm_then_free_text_round_trip_debits_tokens(
     hello = _webhook_update(client, bot_name, secret, text="/hello-llm")
     assert hello.status_code == 200
     greeting = fake_telegram.sent_messages[-1]["payload"]["text"]
-    assert "gpt-4o-mini" in greeting
+    assert "default" in greeting
 
     with app.app_context():
         after_hello = app.container.token_service().get_balance(uuid.UUID(user_id))
@@ -196,13 +207,11 @@ def test_unlinked_free_text_prompts_link_and_bills_nothing(
 ):
     fake_telegram = _inject_fake_telegram_client
 
-    from plugins.chat.src.llm_adapter import LLMAdapter
-
     llm_calls = []
-    monkeypatch.setattr(
-        LLMAdapter,
-        "chat",
-        lambda self, messages: llm_calls.append(messages) or FAKE_LLM_ANSWER,
+    _stub_core_llm_client(
+        app,
+        monkeypatch,
+        on_chat=lambda messages: llm_calls.append(messages) or FAKE_LLM_ANSWER,
     )
 
     _enable_chat_bot(app, monkeypatch)

@@ -1,30 +1,39 @@
-"""Chat service — orchestrates LLM call + token deduction."""
+"""Chat service — orchestrates the core LLM call + token deduction.
+
+The LLM call routes through the CORE connection client (``vbwd.llm`` /
+``container.llm_client``) since S97.5: chat no longer owns an API key, endpoint
+or HTTP adapter. The route + bot consumer resolve the client from the active
+LLM connection (by ``llm_connection_slug``, else the default) and inject it
+here. The system prompt is threaded per call (the core client takes it per
+``.chat``), and a successful call advances the connection's ``last_active_at``.
+"""
 import logging
-from typing import List, Dict
+from typing import Dict, List
 from uuid import UUID
 
+from vbwd.llm.errors import LlmError
 from vbwd.models.enums import TokenTransactionType
 from plugins.chat.src.token_counting import TokenCountingStrategy, get_counting_strategy
-from plugins.chat.src.llm_adapter import LLMAdapter
 
 logger = logging.getLogger(__name__)
 
+# Re-exported so the route + bot consumer keep one error type to catch (DRY).
+# The core client raises ``LlmError``; chat surfaces it under this stable name.
+LLMError = LlmError
 
-def build_chat_service(token_service, config: dict) -> "ChatService":
-    """Assemble a :class:`ChatService` from a token service and plugin config.
+_DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant."
+
+
+def build_chat_service(token_service, config: dict, *, llm_client) -> "ChatService":
+    """Assemble a :class:`ChatService` from a token service + the core LLM client.
 
     Single home (DRY) for the web-chat route and the bot-consumer free-text
-    handler — both must bill tokens identically, so both must build the service
-    the same way.
+    handler — both must bill tokens identically, so both build the service the
+    same way and pass the same connection-resolved ``llm_client``.
     """
-    adapter = LLMAdapter(
-        api_endpoint=config.get("llm_api_endpoint", ""),
-        api_key=config.get("llm_api_key", ""),
-        model=config.get("llm_model", "gpt-4o-mini"),
-        system_prompt=config.get("system_prompt", "You are a helpful assistant."),
-    )
     strategy = get_counting_strategy(config.get("counting_mode", "words"))
-    return ChatService(token_service, adapter, strategy, config)
+    system_prompt = config.get("system_prompt", _DEFAULT_SYSTEM_PROMPT)
+    return ChatService(token_service, llm_client, strategy, config, system_prompt)
 
 
 class ChatService:
@@ -33,14 +42,16 @@ class ChatService:
     def __init__(
         self,
         token_service,
-        llm_adapter: LLMAdapter,
+        llm_client,
         counting_strategy: TokenCountingStrategy,
         config: dict,
+        system_prompt: str = _DEFAULT_SYSTEM_PROMPT,
     ):
         self.token_service = token_service
-        self.llm_adapter = llm_adapter
+        self.llm_client = llm_client
         self.counting_strategy = counting_strategy
         self.config = config
+        self.system_prompt = system_prompt
 
     def send_message(
         self,
@@ -48,14 +59,14 @@ class ChatService:
         message: str,
         history: List[Dict[str, str]],
     ) -> dict:
-        """Send a message to LLM, deduct tokens, return response.
+        """Send a message to the LLM, deduct tokens, return the response.
 
         Returns:
             {"response": str, "tokens_used": int, "balance": int}
 
         Raises:
             ValueError: If insufficient balance or message too long.
-            LLMError: If LLM API call fails.
+            LLMError: If the LLM call fails.
         """
         max_length = self.config.get("max_message_length", 4000)
         if len(message) > max_length:
@@ -73,7 +84,7 @@ class ChatService:
         trimmed_history = history[-max_history:]
 
         messages = trimmed_history + [{"role": "user", "content": message}]
-        response_text = self.llm_adapter.chat(messages)
+        response_text = self.llm_client.chat(messages, system_prompt=self.system_prompt)
 
         response_cost = self.counting_strategy.calculate_tokens(
             response_text, self.config

@@ -57,7 +57,7 @@ class ChatPlugin(BasePlugin):
     def metadata(self) -> PluginMetadata:
         return PluginMetadata(
             name="chat",
-            version="1.0.0",
+            version="26.6",
             author="VBWD Team",
             description="LLM chat with token-based billing",
             # bot-base is intentionally NOT a dependency: the bridge is optional
